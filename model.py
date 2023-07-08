@@ -6,16 +6,20 @@ class Model(ABC):
     """
     Classe abstrata responsável por gerenciar os acessos aos itens no DataBase (DB).
     Atributos:
-        caminhoArquivo (str): Caminho do arquivo CSV contendo os dados do banco de dados.
+        dataBase (str): Caminho do arquivo CSV contendo os dados do banco de dados.
+        location (str): Caminho do arquivo CSV contendo as coordenadas dos supermercados.
         db (Dataframe:Object): Inicializa o objeto e carrega o banco de dados a partir do arquivo CSV.
+        lc (Dataframe:Object): Inicializa o objeto e carrega o banco de dados a partir do arquivo CSV.
     Métodos:
         __init__(): Construtor da classe Model. Inicializa o objeto e lê o arquivo CSV para carregar o banco de dados.
         encontraProduto(): Método abstrato para procurar produtos no DB.
         encontraMercado(): Método abstrato para procurar mercados no DB.
         encontraMarca(): Método abstrato para procurar marcas no DB.
     """
-    caminhoArquivo = "./DataBase/data.csv"
-    db = pd.read_csv(caminhoArquivo)
+    dataBase = './DataBase/data.csv'
+    location = './Database/location.csv'
+    db = pd.read_csv(dataBase)
+    lc = pd.read_csv(location)
     def __init__(self) -> None:
         """
             Construtor da classe Model.
@@ -23,7 +27,7 @@ class Model(ABC):
         pass
 
     @abstractmethod
-    def encontra_produto(self, produto: str) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
+    def encontra_produto(produto: str) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
         """
             Método abstrato responsável por procurar os produtos no DB.
 
@@ -54,47 +58,7 @@ class Model(ABC):
             return {"status": "success", "produtos": produtos_encontrados}
 
         return {"status": "error", "message": "Não encontramos o item que você está buscando."}
-
-    @abstractmethod
-    def lista_mercados(self) -> Dict[str, Union[str, List[str]]]:
-        """
-            Método abstrato responsável por listar os mercados no DB.
-
-            @brief:
-                Lista os mercados no banco de dados.
-
-            @return:
-            Um dicionário com as seguintes chaves:
-                - 'status': Uma string indicando o status da busca ('success' ou 'error').
-                - 'mercados': Uma lista de strings contendo os nomes dos mercados disponíveis no banco de dados da Model.
-        """
-        mercados = Model.db['razao'].unique().tolist()
-
-        if len(mercados) > 0:
-            return {"status": "success", "mercados": mercados}
-        
-        return {"status": "error", "message": "Não foram encontrados mercados no banco de dados."}
     
-    @abstractmethod
-    def lista_produtos(self) -> Dict[str, Union[str, List[str]]]:
-        """
-            Método abstrato responsável por listar os Produtos no DB.
-
-            @brief:
-                Lista os Produtos no banco de dados.
-
-            @return:
-            Um dicionário com as seguintes chaves:
-                - 'status': Uma string indicando o status da busca ('success' ou 'error').
-                - 'Produtos': Uma lista de strings contendo os nomes dos Produtos disponíveis no banco de dados da Model.
-        """
-        Produtos = Model.db['description'].unique().tolist()
-
-        if len(Produtos) > 0:
-            return {"status": "success", "Produtos": Produtos}
-        
-        return {"status": "error", "message": "Não foram encontrados Produtos no banco de dados."}
-
     @abstractmethod
     def encontra_marca(marca: str) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
         """
@@ -135,4 +99,68 @@ class Model(ABC):
             return {"status": "success", "produtos": produtos_encontrados}
         
         return {"status": "error", "message": "Não foram encontrados produtos da marca especificada."}
+
+    @abstractmethod
+    def encontra_mercado(mercado: str) -> None:
+        """
+        Método abstrato responsável por procurar um mercado no banco de dados e obter suas coordenadas.
+
+        @param mercado:
+            Uma string contendo o nome do mercado a ser pesquisado no banco de dados.
+
+        @return:
+            Um dicionário com as seguintes chaves:
+                - 'status': Uma string indicando o status da operação ('success' ou 'error').
+                - 'coordenadas': Uma tupla contendo as coordenadas do mercado encontrado (x, y).
+        """
+        resultado = Model.lc[Model.lc['name'] == mercado]
+
+        if not resultado.empty:
+            x = resultado['x'].values[0]
+            y = resultado['y'].values[0]
+            return {"status": "success", "coordenadas": (x, y)}
+        
+        return {"status": "error", "message": "O mercado não foi encontrado."}
+            
+
+    @abstractmethod
+    def lista_mercados() -> Dict[str, Union[str, List[str]]]:
+        """
+            Método abstrato responsável por listar os mercados no DB.
+
+            @brief:
+                Lista os mercados no banco de dados.
+
+            @return:
+            Um dicionário com as seguintes chaves:
+                - 'status': Uma string indicando o status da busca ('success' ou 'error').
+                - 'mercados': Uma lista de strings contendo os nomes dos mercados disponíveis no banco de dados da Model.
+        """
+        mercados = Model.db['razao'].unique().tolist()
+
+        if len(mercados) > 0:
+            return {"status": "success", "mercados": mercados}
+        
+        return {"status": "error", "message": "Não foram encontrados mercados no banco de dados."}
+    
+    @abstractmethod
+    def lista_produtos() -> Dict[str, Union[str, List[str]]]:
+        """
+            Método abstrato responsável por listar os Produtos no DB.
+
+            @brief:
+                Lista os Produtos no banco de dados.
+
+            @return:
+            Um dicionário com as seguintes chaves:
+                - 'status': Uma string indicando o status da busca ('success' ou 'error').
+                - 'Produtos': Uma lista de strings contendo os nomes dos Produtos disponíveis no banco de dados da Model.
+        """
+        Produtos = Model.db['description'].unique().tolist()
+
+        if len(Produtos) > 0:
+            return {"status": "success", "Produtos": Produtos}
+        
+        return {"status": "error", "message": "Não foram encontrados Produtos no banco de dados."}
+
 
