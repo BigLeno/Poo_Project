@@ -4,13 +4,14 @@ from typing import List, Dict, Union, Tuple
 
 class Model(ABC):
     """
-    Classe abstrata responsável por gerenciar os acessos aos itens no DataBase (DB).
-    Atributos:
+    @brief
+        Classe abstrata responsável por gerenciar os acessos aos itens no DataBase (DB).
+    @Atributos:
         dataBase (str): Caminho do arquivo CSV contendo os dados do banco de dados.
         location (str): Caminho do arquivo CSV contendo as coordenadas dos supermercados.
         db (Dataframe:Object): Inicializa o objeto e carrega o banco de dados a partir do arquivo CSV.
         lc (Dataframe:Object): Inicializa o objeto e carrega o banco de dados a partir do arquivo CSV.
-    Métodos:
+    @Métodos:
         __init__(): Construtor da classe Model. Inicializa o objeto e lê o arquivo CSV para carregar o banco de dados.
         encontraProduto(): Método abstrato para procurar produtos no DB.
         encontraMercado(): Método abstrato para procurar mercados no DB.
@@ -22,10 +23,13 @@ class Model(ABC):
     lc = pd.read_csv(location)
     def __init__(self) -> None:
         """
-            Construtor da classe Model.
+            Construtor da classe abstrata Model.
+
+            A classe não deve ser instânciada!
         """
         pass
-
+    
+    @staticmethod
     @abstractmethod
     def encontra_produto(produto: str) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
         """
@@ -44,21 +48,26 @@ class Model(ABC):
                             - 'mercado': Uma string contendo o nome do mercado.
                             - 'preco_unidade': Um valor float indicando o preço por unidade do produto.
         """
-        resultado = Model.db[Model.db['description'].str.contains(produto)]
-        produtos_encontrados = []
-        mercados_exibidos = set()
-        if not resultado.empty:
-            for index, row in resultado.iterrows():
-                mercado=row['razao']
-                preco_unidade=row['unit_value']
-                descricao=row['description']
-                if mercado not in mercados_exibidos:
-                    produtos_encontrados.append({"descricao": descricao, "mercado": mercado, "preco_unidade": preco_unidade})
-                    mercados_exibidos.add(mercado)
-            return {"status": "success", "produtos": produtos_encontrados}
+        try:
+            resultado = Model.db[Model.db['description'].str.contains(produto)]
+            produtos_encontrados = []
+            mercados_exibidos = set()
+            if not resultado.empty:
+                for index, row in resultado.iterrows():
+                    mercado=row['razao']
+                    preco_unidade=row['unit_value']
+                    descricao=row['description']
+                    if mercado not in mercados_exibidos:
+                        produtos_encontrados.append({"descricao": descricao, "mercado": mercado, "preco_unidade": preco_unidade})
+                        mercados_exibidos.add(mercado)
+                return {"status": "success", "produtos": produtos_encontrados}
 
-        return {"status": "error", "message": "Não encontramos o item que você está buscando."}
+            return {"status": "error", "message": "Não encontramos o item que você está buscando."}
+        
+        except Exception as e:
+            return {"status": "error", "mensagem": f"Erro ao encontrar o item: {str(e)}"}
     
+    @staticmethod
     @abstractmethod
     def encontra_marca(marca: str) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
         """
@@ -81,25 +90,30 @@ class Model(ABC):
                         - 'mercado': Uma string contendo o nome do mercado.
                         - 'preco_unidade': Um valor float indicando o preço por unidade do produto.
         """
-        produtos_encontrados = []
-        mercados_exibidos = set()
+        try:
+            produtos_encontrados = []
+            mercados_exibidos = set()
 
-        for index, row in Model.db.iterrows():
-            if marca in row['description']:
-                mercado = row['razao']
-                preco_unidade = row['unit_value']
-                descricao = row['description']
+            for index, row in Model.db.iterrows():
+                if marca in row['description']:
+                    mercado = row['razao']
+                    preco_unidade = row['unit_value']
+                    descricao = row['description']
 
-                if mercado not in mercados_exibidos:
-                    produto = {"descricao": descricao, "mercado": mercado, "preco_unidade": preco_unidade}
-                    produtos_encontrados.append(produto)
-                    mercados_exibidos.add(mercado)
+                    if mercado not in mercados_exibidos:
+                        produto = {"descricao": descricao, "mercado": mercado, "preco_unidade": preco_unidade}
+                        produtos_encontrados.append(produto)
+                        mercados_exibidos.add(mercado)
+            
+            if len(produtos_encontrados) > 0:
+                return {"status": "success", "produtos": produtos_encontrados}
+            
+            return {"status": "error", "message": "Não foram encontrados produtos da marca especificada."}
         
-        if len(produtos_encontrados) > 0:
-            return {"status": "success", "produtos": produtos_encontrados}
-        
-        return {"status": "error", "message": "Não foram encontrados produtos da marca especificada."}
+        except Exception as e:
+            return {"status": "error", "mensagem": f"Erro ao encontrar o item: {str(e)}"}
 
+    @staticmethod
     @abstractmethod
     def encontra_mercado(mercado: str) -> Dict[str, Union[str, Tuple[float, float]]]:
         """
@@ -113,15 +127,114 @@ class Model(ABC):
                 - 'status': Uma string indicando o status da operação ('success' ou 'error').
                 - 'coordenadas': Uma tupla contendo as coordenadas do mercado encontrado (x, y).
         """
-        resultado = Model.lc[Model.lc['name'] == mercado]
+        try:
+            resultado = Model.lc[Model.lc['name'] == mercado]
 
-        if not resultado.empty:
-            x = resultado['x'].values[0]
-            y = resultado['y'].values[0]
-            return {"status": "success", "coordenadas": (x, y)}
-        
-        return {"status": "error", "message": "O mercado não foi encontrado."}
+            if not resultado.empty:
+                x = resultado['x'].values[0]
+                y = resultado['y'].values[0]
+                return {"status": "success", "coordenadas": (x, y)}
             
+            return {"status": "error", "message": "O mercado não foi encontrado."}
+        
+        except Exception as e:
+            return {"status": "error", "mensagem": f"Erro ao encontrar o item: {str(e)}"}
+
+    @staticmethod    
+    @abstractmethod
+    def adiciona_item_db(item: List[str]) -> Dict[str, Union[str, bool]]:
+        """
+        Método responsável por adicionar um item ao DataFrame.
+
+        @param item:
+            Uma lista contendo os valores do item a ser adicionado.
+            Exemplo:
+                item -> ['valor1', 'valor2', 'valor3', 'valor4', 'valor5', 'valor6']
+
+        @return:
+            Um dicionário com as seguintes chaves:
+                - 'status': Uma string indicando o status da operação ('success' ou 'error').
+                - 'mensagem': Uma string contendo a mensagem de retorno.
+        """
+        try:
+            Model.db.loc[len(Model.db)] = item
+            Model.db.to_csv(Model.dataBase, index=False)
+            return {"status": "success", "mensagem": "Item adicionado com sucesso."}
+        except Exception as e:
+            return {"status": "error", "mensagem": f"Erro ao adicionar o item: {str(e)}"}
+
+    @staticmethod
+    @abstractmethod
+    def remove_item_db(item: List[str]) -> Dict[str, Union[str, bool]]:
+        """
+        Método responsável por remover um item do DataFrame.
+
+        @param item:
+            Uma lista contendo os valores do item a ser removido.
+            Exemplo:
+                item -> ['valor1', 'valor2', 'valor3', 'valor4', 'valor5', 'valor6']
+
+        @return:
+            Um dicionário com as seguintes chaves:
+                - 'status': Uma string indicando o status da operação ('success' ou 'error').
+                - 'mensagem': Uma string contendo a mensagem de retorno.
+        """
+        try:
+            linhas_remover = Model.db[Model.db.apply(lambda row: row.tolist() == item, axis=1)]
+            Model.db.drop(linhas_remover.index, inplace=True)
+            Model.db.to_csv(Model.dataBase, index=False)
+            return {"status": "success", "mensagem": "Item removido com sucesso."}
+        except Exception as e:
+            return {"status": "error", "mensagem": f"Erro ao remover o item: {str(e)}"}
+
+    @staticmethod
+    @abstractmethod
+    def adiciona_item_lc(item: List[str]) -> Dict[str, Union[str, bool]]:
+        """
+        Método responsável por adicionar um item ao DataFrame.
+
+        @param item:
+            Uma lista contendo os valores do item a ser adicionado.
+            Exemplo:
+                item -> ['valor1', 'valor2', 'valor3', 'valor4']
+
+        @return:
+            Um dicionário com as seguintes chaves:
+                - 'status': Uma string indicando o status da operação ('success' ou 'error').
+                - 'mensagem': Uma string contendo a mensagem de retorno.
+        """
+        try:
+            Model.lc.loc[len(Model.lc)] = item
+            Model.lc.to_csv(Model.location, index=False)
+            return {"status": "success", "mensagem": "Item adicionado com sucesso."}
+        except Exception as e:
+            return {"status": "error", "mensagem": f"Erro ao adicionar o item: {str(e)}"}
+
+    @staticmethod
+    @abstractmethod
+    def remove_item_lc(item: List[str]) -> Dict[str, Union[str, bool]]:
+        """
+        Método responsável por remover um item do DataFrame.
+
+        @param item:
+            Uma lista contendo os valores do item a ser removido.
+            Exemplo:
+                item -> ['valor1', 'valor2', 'valor3', 'valor4']
+
+        @return:
+            Um dicionário com as seguintes chaves:
+                - 'status': Uma string indicando o status da operação ('success' ou 'error').
+                - 'mensagem': Uma string contendo a mensagem de retorno.
+        """
+        try:
+            linhas_remover = Model.lc[Model.lc.apply(lambda row: row.tolist() == item, axis=1)]
+            Model.lc.drop(linhas_remover.index, inplace=True)
+            Model.lc.to_csv(Model.location, index=False)
+            return {"status": "success", "mensagem": "Item removido com sucesso."}
+        except Exception as e:
+            return {"status": "error", "mensagem": f"Erro ao remover o item: {str(e)}"}
+
+    @staticmethod
     @abstractmethod
     def lista_mercados() -> Dict[str, Union[str, List[str]]]:
         """
@@ -135,13 +248,18 @@ class Model(ABC):
                 - 'status': Uma string indicando o status da busca ('success' ou 'error').
                 - 'mercados': Uma lista de strings contendo os nomes dos mercados disponíveis no banco de dados da Model.
         """
-        mercados = Model.db['razao'].unique().tolist()
+        try:
+            mercados = Model.db['razao'].unique().tolist()
 
-        if len(mercados) > 0:
-            return {"status": "success", "mercados": mercados}
+            if len(mercados) > 0:
+                return {"status": "success", "mercados": mercados}
+            
+            return {"status": "error", "message": "Não foram encontrados mercados no banco de dados."}
         
-        return {"status": "error", "message": "Não foram encontrados mercados no banco de dados."}
+        except Exception as e:
+            return {"status": "error", "mensagem": f"Erro ao listar os items: {str(e)}"}
     
+    @staticmethod
     @abstractmethod
     def lista_produtos() -> Dict[str, Union[str, List[str]]]:
         """
@@ -155,11 +273,17 @@ class Model(ABC):
                 - 'status': Uma string indicando o status da busca ('success' ou 'error').
                 - 'Produtos': Uma lista de strings contendo os nomes dos Produtos disponíveis no banco de dados da Model.
         """
-        Produtos = Model.db['description'].unique().tolist()
+        try:
+            Produtos = Model.db['description'].unique().tolist()
 
-        if len(Produtos) > 0:
-            return {"status": "success", "Produtos": Produtos}
-        
-        return {"status": "error", "message": "Não foram encontrados Produtos no banco de dados."}
+            if len(Produtos) > 0:
+                return {"status": "success", "Produtos": Produtos}
+            
+            return {"status": "error", "message": "Não foram encontrados Produtos no banco de dados."}
+
+        except Exception as e:
+            return {"status": "error", "mensagem": f"Erro ao listar os items: {str(e)}"}
+
+
 
 
