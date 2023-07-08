@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import pandas as pd
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Tuple
 
 class Model(ABC):
     """
@@ -101,7 +101,7 @@ class Model(ABC):
         return {"status": "error", "message": "Não foram encontrados produtos da marca especificada."}
 
     @abstractmethod
-    def encontra_mercado(mercado: str) -> None:
+    def encontra_mercado(mercado: str) -> Dict[str, Union[str, Tuple[float, float]]]:
         """
         Método abstrato responsável por procurar um mercado no banco de dados e obter suas coordenadas.
 
@@ -122,7 +122,6 @@ class Model(ABC):
         
         return {"status": "error", "message": "O mercado não foi encontrado."}
             
-
     @abstractmethod
     def lista_mercados() -> Dict[str, Union[str, List[str]]]:
         """
