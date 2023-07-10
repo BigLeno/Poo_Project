@@ -5,7 +5,7 @@ from tkinter import ttk
 class app_view:
     def __init__(self, root):
         self.root = root
-        self.root.title("Nome do App")
+        #self.root.title("Nome do App")
 
         # Frame superior com o texto "Nome do App"
         self.frame_superior = tk.Frame(self.root)
