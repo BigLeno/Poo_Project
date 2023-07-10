@@ -119,6 +119,6 @@ class Tabela(tk.Frame):
 
 root = tk.Tk()
 root.title('View em App')
-root.geometry('1400x500+100+100')
+root.geometry('600x480+100+100')
 app = app_view(root)
 root.mainloop()
