@@ -10,58 +10,59 @@ class app_view:
         # Frame superior com o texto "Nome do App"
         self.frame_superior = tk.Frame(self.root)
         self.label_nome_app = tk.Label(self.frame_superior, text="Nome do App")
-        self.label_nome_app.grid(row=0, column=0)
-        self.frame_superior.grid(row=0, column=0, sticky="ew")
+        self.label_nome_app.pack()
+        self.frame_superior.grid(row=0, column=0)
 
         # Frame esquerdo com fundo verde
-        self.frame_esquerdo = tk.Frame(self.root)
-        self.map = tk.Frame(self.frame_esquerdo, bg="green")
-        self.frame_esquerdo.grid(row=1, column=0, sticky="nsew")
-        self.map.grid(row=0, column=0, sticky="nsew")
+        self.frame_esquerdo = tk.Frame(self.root,bg="green")
+        self.frame_esquerdo.grid(row=1, column=0,columnspan=2, sticky="nsew")
 
         # Frame direito com comboboxes, radiobutton e botão
-        self.frame_direito = tk.Frame(self.root)
+        self.frame_direito = tk.Frame(self.root,bg="light grey")
         self.comboboxes_frame = tk.Frame(self.frame_direito)
         self.combobox_label_produtos = tk.Label(self.comboboxes_frame, text="Produtos")
         self.combobox_label_produtos.grid(row=0, column=0, sticky=tk.W)
-        self.combobox_produtos = ttk.Combobox(self.comboboxes_frame, values=["item 1", "item 2", "item 3"])
+        self.combobox_produtos = ttk.Combobox(self.comboboxes_frame, values=["Selecione um produto", "item 2", "item 3"])
+        self.combobox_produtos.current(0)
         self.combobox_produtos.grid(row=0, column=1, sticky=tk.W)
 
         self.combobox_label_mercados = tk.Label(self.comboboxes_frame, text="Mercados")
         self.combobox_label_mercados.grid(row=1, column=0, sticky=tk.W)
-        self.combobox_mercados = ttk.Combobox(self.comboboxes_frame, values=["item 1", "item 2", "item 3"])
+        self.combobox_mercados = ttk.Combobox(self.comboboxes_frame, values=["Selecione uma loja", "item 2", "item 3"])
+        self.combobox_mercados.current(0)
         self.combobox_mercados.grid(row=1, column=1, sticky=tk.W)
 
         self.combobox_label_marcas = tk.Label(self.comboboxes_frame, text="Marcas")
         self.combobox_label_marcas.grid(row=2, column=0, sticky=tk.W)
-        self.combobox_marcas = ttk.Combobox(self.comboboxes_frame, values=["item 1", "item 2", "item 3"])
+        self.combobox_marcas = ttk.Combobox(self.comboboxes_frame, values=["Selecione uma marca", "item 2", "item 3"])
+        self.combobox_marcas.current(0)
         self.combobox_marcas.grid(row=2, column=1, sticky=tk.W)
 
         self.comboboxes_frame.grid(row=0, column=0, sticky="ew")
         self.radio_var = tk.StringVar()
         self.radio_var.set("Menor preço")
-        self.radio_frame = tk.Frame(self.frame_direito)
-        self.radio_label = tk.Label(self.radio_frame, text="Ordenar por:")
+        self.radio_frame = tk.Frame(self.frame_direito,bg="light grey")
+        self.radio_label = tk.Label(self.radio_frame,bg="light grey", text="Ordenar por:")
         self.radio_label.grid(row=0, column=0, sticky=tk.W)
-        self.radio_button1 = tk.Radiobutton(self.radio_frame, text="Menor preço", variable=self.radio_var,
+        self.radio_button1 = tk.Radiobutton(self.radio_frame,bg="light grey", text="Menor preço", variable=self.radio_var,
                                             value="Menor preço")
         self.radio_button1.grid(row=0, column=1, sticky=tk.W)
-        self.radio_button2 = tk.Radiobutton(self.radio_frame, text="Maior preço", variable=self.radio_var,
+        self.radio_button2 = tk.Radiobutton(self.radio_frame,bg="light grey", text="Maior preço", variable=self.radio_var,
                                             value="Maior preço")
         self.radio_button2.grid(row=1, column=1, sticky=tk.W)
-        self.radio_button3 = tk.Radiobutton(self.radio_frame, text="Menor peso", variable=self.radio_var,
+        self.radio_button3 = tk.Radiobutton(self.radio_frame,bg="light grey", text="Menor peso", variable=self.radio_var,
                                             value="Menor peso")
         self.radio_button3.grid(row=2, column=1, sticky=tk.W)
-        self.radio_button4 = tk.Radiobutton(self.radio_frame, text="Maior peso", variable=self.radio_var,
+        self.radio_button4 = tk.Radiobutton(self.radio_frame,bg="light grey", text="Maior peso", variable=self.radio_var,
                                             value="Maior peso")
         self.radio_button4.grid(row=3, column=1, sticky=tk.W)
-        self.radio_button5 = tk.Radiobutton(self.radio_frame, text="Custo benefício", variable=self.radio_var,
+        self.radio_button5 = tk.Radiobutton(self.radio_frame,bg="light grey", text="Custo benefício", variable=self.radio_var,
                                             value="Custo benefício")
         self.radio_button5.grid(row=4, column=1, sticky=tk.W)
         self.radio_frame.grid(row=1, column=0, sticky="w")
 
-        self.filtrar_button = tk.Button(self.frame_direito, text="Filtrar", command=self.filtrar_items)
-        self.filtrar_button.grid(row=2, column=0, sticky="w")
+        self.filtrar_button = tk.Button(self.frame_direito,bg="light grey", text="Filtrar", command=self.filtrar_items)
+        self.filtrar_button.grid(row=2, column=0)
 
         self.frame_direito.grid(row=1, column=1, sticky="e")
 
@@ -104,7 +105,7 @@ class Tabela(tk.Frame):
 
         self._tv.grid(row=0, column=0, sticky='nsew')
         self._sb_y.grid(row=0, column=1, sticky='ns')
-        self._sb_x.grid(row=1, column=0, columnspan=2, sticky='we')
+        self._sb_x.grid(row=1, column=0, columnspan=1, sticky='we')
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -118,6 +119,6 @@ class Tabela(tk.Frame):
 
 root = tk.Tk()
 root.title('View em App')
-root.geometry('1400x400+100+100')
+root.geometry('1400x500+100+100')
 app = app_view(root)
 root.mainloop()
