@@ -203,6 +203,7 @@ class View:
 
         @brief Função principal para executar o aplicativo de gerenciamento.
         """
+        print("Iniciando o Viewer")
         View.inicializa_gui()
         View.frame_superior()
         View.frame_esquerdo()
