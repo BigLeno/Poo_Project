@@ -1,12 +1,15 @@
 import tkinter as tk
 from tkinter import ttk
 from tkintermapview import TkinterMapView
+from typing import List, Tuple
+import pandas as pd
 
 class AppView:
     def __init__(self, root):
         self.root = root
         self.root.title("Nome do App")
-        
+        self.lista_mercados=["Selecione uma loja"]
+        self.lista_produtos=["Selecione um produto"]
         self.inicializa_gui()
 
     def inicializa_gui(self):
@@ -34,17 +37,13 @@ class AppView:
         self.comboboxes_frame = tk.Frame(self.frame_direito)
         self.combobox_label_produtos = tk.Label(self.comboboxes_frame, text="Produtos")
         self.combobox_label_produtos.grid(row=0, column=0, sticky=tk.W)
-        self.combobox_produtos = ttk.Combobox(
-            self.comboboxes_frame, values=["Selecione um produto", "item 2", "item 3"]
-        )
+        self.combobox_produtos = ttk.Combobox(self.comboboxes_frame, values=self.lista_produtos)
         self.combobox_produtos.current(0)
         self.combobox_produtos.grid(row=0, column=1, sticky=tk.W)
 
         self.combobox_label_mercados = tk.Label(self.comboboxes_frame, text="Mercados")
         self.combobox_label_mercados.grid(row=1, column=0, sticky=tk.W)
-        self.combobox_mercados = ttk.Combobox(
-            self.comboboxes_frame, values=["Selecione uma loja", "item 2", "item 3"]
-        )
+        self.combobox_mercados = ttk.Combobox(self.comboboxes_frame, values=self.lista_lojas)
         self.combobox_mercados.current(0)
         self.combobox_mercados.grid(row=1, column=1, sticky=tk.W)
 
@@ -74,33 +73,7 @@ class AppView:
             value="Maior preço",
             command=self.ordenar_maior_preco,
         )
-        self.radio_button2.grid(row=1, column=1, sticky=tk.W)
-        self.radio_button3 = tk.Radiobutton(
-            self.radio_frame,
-            bg="light grey",
-            text="Menor peso",
-            variable=self.radio_var,
-            value="Menor peso",
-            command=self.ordenar_menor_peso,
-        )
-        self.radio_button3.grid(row=2, column=1, sticky=tk.W)
-        self.radio_button4 = tk.Radiobutton(
-            self.radio_frame,
-            bg="light grey",
-            text="Maior peso",
-            variable=self.radio_var,
-            value="Maior peso",
-            command=self.ordenar_maior_peso,
-        )
-        self.radio_button4.grid(row=3, column=1, sticky=tk.W)
-        self.radio_button5 = tk.Radiobutton(
-            self.radio_frame,
-            bg="light grey",
-            text="Custo benefício",
-            variable=self.radio_var,
-            value="Custo benefício",
-        )
-        self.radio_button5.grid(row=4, column=1, sticky=tk.W)
+        
         self.radio_frame.grid(row=1, column=0, sticky="w")
 
         self.map_type_var = tk.StringVar()
@@ -142,7 +115,7 @@ class AppView:
 
     def frame_inferior(self):
         self.frame_inferior = Tabela(
-            self.root, ["Produto", "Marca", "Mercado", "Preço", "Peso"]
+            self.root, ["Produto", "Mercado", "Preço"]
         )
         self.frame_inferior.grid(row=2, column=0, columnspan=2, sticky="nsew")
         self.root.grid_columnconfigure(0, weight=1)
@@ -158,13 +131,7 @@ class AppView:
             self.mapview.set_tile_server("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
 
     def filtrar_items(self):
-        item_produtos = self.combobox_produtos.get()
-        item_mercados = self.combobox_mercados.get()
-        ordenacao = self.radio_var.get()
-
-        print("Item selecionado no combobox de Produtos:", item_produtos)
-        print("Item selecionado no combobox de Mercados:", item_mercados)
-        print("Opção selecionada no radiobutton:", ordenacao)
+        self.controle.filtrar_items(self)
 
     def ordenar_menor_preco(self):
         self.frame_inferior.ordena_crescente("Preço")
@@ -172,11 +139,6 @@ class AppView:
     def ordenar_maior_preco(self):
         self.frame_inferior.ordena_decrescente("Preço")
 
-    def ordenar_menor_peso(self):
-        self.frame_inferior.ordena_crescente("Peso")
-
-    def ordenar_maior_peso(self):
-        self.frame_inferior.ordena_decrescente("Peso")
 
 class Tabela(tk.Frame):
     def __init__(self, pai, tit_cols):
@@ -248,9 +210,270 @@ class Tabela(tk.Frame):
 
         for idx, (_, item) in enumerate(valores):
             self._tv.move(item, "", idx)
+class Produto:
+    """Uma classe que representa cada objeto"""
+    def __init__(self, descricao, mercado, unit_value):
+        """Objeto que representa um produto"""
+        self.descricao = descricao # Descrição do produto
+        self.mercado   = mercado    # Nome do mercado onde
+        self.unit_value  = unit_value# Valor unitário
 
-root = tk.Tk()
-root.title("View em App")
-root.geometry("1200x800+10+10")
-app = AppView(root)
-root.mainloop()
+    def __repr__(self):
+        return f"descrição: {self.descricao}, mercado: {self.mercado}, preço: {self.unit_value}"
+class Mercado:
+    """Uma classe que representa cada objeto"""
+    def __init__(self, mercado, resultado):
+        """Objeto que representa um Supermercado"""
+        self.resultado = resultado
+        self.mercado = mercado
+    
+    def localizacao(self):
+        """Método que pega as coordenadas"""
+        return self.resultado['x'].values[0], self.resultado['y'].values[0]
+    
+    def __repr__(self):
+        return f'Mercado: {self.mercado}, Localização: {(self.localizacao())}'
+class Model:
+    """
+    @brief
+        Classe responsável por gerenciar os acessos aos itens no DataBase (DB).
+    
+    """
+
+    def __init__(self, database='./DataBase/data.csv', location='./Database/location.csv') -> None:
+        """
+            Construtor da classe Model.
+        """
+        self.database = database
+        self.location = location
+        self.db = pd.read_csv(self.database)
+        self.lc = pd.read_csv(self.location)
+
+    
+    def encontra_produto(self, produto: str) -> List[Produto]:
+        """
+            Método abstrato responsável por procurar os produtos no DB.
+
+            @brief:
+                Recebe um produto como entrada e retorna um dicionário contendo as informações dos produtos encontrados.
+            @param produto:
+                Uma string contendo o nome do produto a ser procurado no banco de dados.
+            @return:
+                Uma lista de objetos 
+        """
+        try:
+            resultado = self.db[self.db['description'].str.contains(produto)]
+            produtos_encontrados = []
+            mercados_exibidos = set()
+            for index, row in resultado.iterrows():
+                produto = Produto(row["description"], row["razao"], row["unit_value"])
+                if produto.mercado not in mercados_exibidos:
+                    mercados_exibidos.add(produto.mercado)
+                    produtos_encontrados.append(produto)
+                        
+            return produtos_encontrados
+
+        except Exception as e:
+            raise f"Erro ao encontrar o item: {str(e)}"
+    
+    def encontra_marca(self, marca: str) -> List[Produto]:
+        """
+        Implementação do método encontra_marca da classe Model.
+
+        Realiza a busca por marcas no banco de dados específico da Model.
+
+        @brief:
+            Realiza a busca por marcas no banco de dados da Model.
+
+        @param marca:
+            Uma string contendo o nome da marca a ser procurada no banco de dados da Model.
+
+        @return:
+           Uma lista de objetos
+        """
+        try:
+            produtos_encontrados = []
+            mercados_exibidos = set()
+
+            for index, row in self.db.iterrows():
+                if marca in row['description']:
+                    produto = Produto(row["description"], row["razao"], row["unit_value"])
+                    if produto.mercado not in mercados_exibidos:
+                        mercados_exibidos.add(produto.mercado)
+                        produtos_encontrados.append(produto)
+            
+            return produtos_encontrados
+            
+        except Exception as e:
+            raise f"Erro ao encontrar o item: {str(e)}"
+
+    def encontra_mercado(self, mercado: str) -> Tuple[float, float]:
+        """
+        Método abstrato responsável por procurar um mercado no banco de dados e obter suas coordenadas.
+
+        @param mercado:
+            Uma string contendo o nome do mercado a ser pesquisado no banco de dados.
+
+        @return:
+           Um objeto que representa um mercado
+        """
+        try:
+            return Mercado(mercado, self.lc[self.lc['name'] == mercado])
+        
+        except Exception as e:
+            raise f"Erro ao encontrar o item: {str(e)}"
+
+    def adiciona_item_db(self, item: List[str]) -> None:
+        """
+        Método responsável por adicionar um item ao DataFrame.
+
+        @param item:
+            Uma lista contendo os valores do item a ser adicionado.
+            Exemplo:
+                item -> ['valor1', 'valor2', 'valor3', 'valor4', 'valor5', 'valor6']
+
+        """
+        try:
+            self.db.loc[len(self.db)] = item
+            self.db.to_csv(self.database, index=False)
+
+        except Exception as e:
+            raise f"Erro ao adicionar o item: {str(e)}"
+
+    def remove_item_db(self, item: List[str]) -> None:
+        """
+        Método responsável por remover um item do DataFrame.
+
+        @param item:
+            Uma lista contendo os valores do item a ser removido.
+            Exemplo:
+                item -> ['valor1', 'valor2', 'valor3', 'valor4', 'valor5', 'valor6']
+        """
+        try:
+            linhas_remover = self.db[self.db.apply(lambda row: row.tolist() == item, axis=1)]
+            self.db.drop(linhas_remover.index, inplace=True)
+            self.db.to_csv(self.database, index=False)
+        
+        except Exception as e:
+            return f"Erro ao remover o item: {str(e)}"
+
+    def adiciona_item_lc(self, item: List[str]) -> None:
+        """
+        Método responsável por adicionar um item ao DataFrame.
+
+        @param item:
+            Uma lista contendo os valores do item a ser adicionado.
+            Exemplo:
+                item -> ['valor1', 'valor2', 'valor3', 'valor4']
+        """
+        try:
+            self.lc.loc[len(self.lc)] = item
+            self.lc.to_csv(self.location, index=False)
+
+        except Exception as e:
+            raise f"Erro ao adicionar o item: {str(e)}"
+
+    def remove_item_lc(self, item: List[str]) -> None:
+        """
+        Método responsável por remover um item do DataFrame.
+
+        @param item:
+            Uma lista contendo os valores do item a ser removido.
+            Exemplo:
+                item -> ['valor1', 'valor2', 'valor3', 'valor4']
+
+        """
+        try:
+            linhas_remover = self.lc[self.lc.apply(lambda row: row.tolist() == item, axis=1)]
+            self.lc.drop(linhas_remover.index, inplace=True)
+            self.lc.to_csv(self.location, index=False)
+
+        except Exception as e:
+            raise f"Erro ao remover o item: {str(e)}"
+
+    def lista_mercados(self) -> List[str]:
+        """
+            Método abstrato responsável por listar os mercados no DB.
+
+            @brief:
+                Lista os mercados no banco de dados.
+
+            @return:
+                Retorna uma lista de mercardos
+        """
+        try:
+            return self.db['razao'].unique().tolist()
+        
+        except Exception as e:
+            raise f"Erro ao listar os items: {str(e)}"
+    
+    def lista_produtos(self) -> List[str]:
+        """
+            Método abstrato responsável por listar os Produtos no DB.
+
+            @brief:
+                Lista os Produtos no banco de dados.
+
+            @return:
+            Um dicionário com as seguintes chaves:
+                - 'status': Uma string indicando o status da busca ('success' ou 'error').
+                - 'Produtos': Uma lista de strings contendo os nomes dos Produtos disponíveis no banco de dados da Model.
+        """
+        try:
+            return self.db['description'].unique().tolist()
+            
+        except Exception as e:
+            raise f"Erro ao listar os items: {str(e)}"
+class Controle:
+    def __init__(self):
+        self.model = Model()
+    
+    def iniciar(self):
+        root = tk.Tk()
+        root.title("View em App")
+        root.geometry("1200x800+10+10")
+        app = AppView(root, self.model)
+        self.salvar_mercados(app)
+        self.salvar_produtos(app)
+        self.atualizar_tabela(app)
+        root.mainloop()
+    
+    def salvar_mercados(self, app):
+        mercados = self.model.lista_mercados()
+        app.lista_mercados.extend(mercados)
+    
+    def salvar_produtos(self, app):
+        produtos = self.model.lista_produtos()
+        app.lista_produtos.extend(produtos)
+    def atualizar_tabela(self, app):
+        produtos = self.model.encontra_produto("")
+        for produto in produtos:
+            app.frame_inferior.adiciona_dado([produto.descricao, produto.mercado, produto.unit_value])
+    def filtrar_items(self, app):
+        item_produtos = app.combobox_produtos.get()
+        item_mercados = app.combobox_mercados.get()
+
+        if item_produtos == "Selecione um produto" and item_mercados == "Selecione uma loja":
+            # Mostrar todos os produtos e mercados
+            self.atualizar_tabela(app)
+        elif item_produtos == "Selecione um produto":
+            # Filtrar por mercado selecionado
+            produtos = self.model.encontra_mercado(item_mercados).resultado
+            app.frame_inferior.limpar_tabela()
+            for index, row in produtos.iterrows():
+                app.frame_inferior.adiciona_dado([row["description"], row["razao"], row["unit_value"]])
+        elif item_mercados == "Selecione uma loja":
+            # Filtrar por produto selecionado
+            produtos = self.model.encontra_produto(item_produtos)
+            app.frame_inferior.limpar_tabela()
+            for produto in produtos:
+                app.frame_inferior.adiciona_dado([produto.descricao, produto.mercado, produto.unit_value])
+        else:
+            # Filtrar por produto e mercado selecionados
+            produtos = self.model.encontra_produto(item_produtos)
+            app.frame_inferior.limpar_tabela()
+            for produto in produtos:
+                if produto.mercado == item_mercados:
+                    app.frame_inferior.adiciona_dado([produto.descricao, produto.mercado, produto.unit_value])
+
+APP_controle=Controle()
