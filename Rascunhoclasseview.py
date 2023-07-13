@@ -2,18 +2,26 @@ import tkinter as tk
 from tkinter import ttk
 from tkintermapview import TkinterMapView
 
-class app_view:
+class AppView:
     def __init__(self, root):
         self.root = root
         self.root.title("Nome do App")
+        
+        self.inicializa_gui()
 
-        # Frame superior com o texto "Nome do App"
+    def inicializa_gui(self):
+        self.frame_superior()
+        self.frame_esquerdo()
+        self.frame_direito()
+        self.frame_inferior()
+
+    def frame_superior(self):
         self.frame_superior = tk.Frame(self.root)
         self.label_nome_app = tk.Label(self.frame_superior, text="Nome do App")
         self.label_nome_app.pack()
         self.frame_superior.grid(row=0, column=0)
 
-        # Frame esquerdo com mapa
+    def frame_esquerdo(self):
         self.frame_esquerdo = tk.Frame(self.root)
         self.mapview = TkinterMapView(self.frame_esquerdo, width=800, height=600, corner_radius=0)
         self.mapview.set_position(-5.7936, -35.1989)
@@ -21,7 +29,7 @@ class app_view:
         self.mapview.pack(fill=tk.BOTH, expand=True)
         self.frame_esquerdo.grid(row=1, column=0, columnspan=2, sticky="nsew")
 
-        # Frame direito com comboboxes, radiobuttons e botão
+    def frame_direito(self):
         self.frame_direito = tk.Frame(self.root, bg="light grey")
         self.comboboxes_frame = tk.Frame(self.frame_direito)
         self.combobox_label_produtos = tk.Label(self.comboboxes_frame, text="Produtos")
@@ -41,6 +49,7 @@ class app_view:
         self.combobox_mercados.grid(row=1, column=1, sticky=tk.W)
 
         self.comboboxes_frame.grid(row=0, column=0, sticky="ew")
+        
         self.radio_var = tk.StringVar()
         self.radio_var.set("Menor preço")
         self.radio_frame = tk.Frame(self.frame_direito, bg="light grey")
@@ -54,6 +63,7 @@ class app_view:
             text="Menor preço",
             variable=self.radio_var,
             value="Menor preço",
+            command=self.ordenar_menor_preco,
         )
         self.radio_button1.grid(row=0, column=1, sticky=tk.W)
         self.radio_button2 = tk.Radiobutton(
@@ -62,6 +72,7 @@ class app_view:
             text="Maior preço",
             variable=self.radio_var,
             value="Maior preço",
+            command=self.ordenar_maior_preco,
         )
         self.radio_button2.grid(row=1, column=1, sticky=tk.W)
         self.radio_button3 = tk.Radiobutton(
@@ -70,6 +81,7 @@ class app_view:
             text="Menor peso",
             variable=self.radio_var,
             value="Menor peso",
+            command=self.ordenar_menor_peso,
         )
         self.radio_button3.grid(row=2, column=1, sticky=tk.W)
         self.radio_button4 = tk.Radiobutton(
@@ -78,6 +90,7 @@ class app_view:
             text="Maior peso",
             variable=self.radio_var,
             value="Maior peso",
+            command=self.ordenar_maior_peso,
         )
         self.radio_button4.grid(row=3, column=1, sticky=tk.W)
         self.radio_button5 = tk.Radiobutton(
@@ -127,15 +140,14 @@ class app_view:
 
         self.frame_direito.grid(row=1, column=1, sticky="e")
 
-        # Frame inferior com Treeview
+    def frame_inferior(self):
         self.frame_inferior = Tabela(
             self.root, ["Produto", "Marca", "Mercado", "Preço", "Peso"]
         )
         self.frame_inferior.grid(row=2, column=0, columnspan=2, sticky="nsew")
-
-        self.root.grid_rowconfigure(1, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_columnconfigure(1, weight=1)
+
 
     def mudar_tipo_mapa(self):
         tipo_mapa = self.map_type_var.get()
@@ -154,6 +166,17 @@ class app_view:
         print("Item selecionado no combobox de Mercados:", item_mercados)
         print("Opção selecionada no radiobutton:", ordenacao)
 
+    def ordenar_menor_preco(self):
+        self.frame_inferior.ordena_crescente("Preço")
+
+    def ordenar_maior_preco(self):
+        self.frame_inferior.ordena_decrescente("Preço")
+
+    def ordenar_menor_peso(self):
+        self.frame_inferior.ordena_crescente("Peso")
+
+    def ordenar_maior_peso(self):
+        self.frame_inferior.ordena_decrescente("Peso")
 
 class Tabela(tk.Frame):
     def __init__(self, pai, tit_cols):
@@ -193,9 +216,41 @@ class Tabela(tk.Frame):
 
         self._tv.insert("", tk.END, values=strings_cols)
 
+    def remove_dados(self, pos):
+        items = self._tv.get_children()
+        if pos < 0 or pos >= len(items):
+            raise Exception(f"Posição inválida: {pos}")
+
+        item = items[pos]
+        self._tv.delete(item)
+    def ordena_crescente(self, coluna):
+        items = self._tv.get_children()
+        valores = []
+
+        for item in items:
+            valor = self._tv.set(item, coluna)
+            valores.append((valor, item))
+
+        valores.sort(key=lambda x: x[0])
+
+        for idx, (_, item) in enumerate(valores):
+            self._tv.move(item, "", idx)
+
+    def ordena_decrescente(self, coluna):
+        items = self._tv.get_children()
+        valores = []
+
+        for item in items:
+            valor = self._tv.set(item, coluna)
+            valores.append((valor, item))
+
+        valores.sort(key=lambda x: x[0], reverse=True)
+
+        for idx, (_, item) in enumerate(valores):
+            self._tv.move(item, "", idx)
 
 root = tk.Tk()
 root.title("View em App")
-root.geometry("600x480+100+100")
-app = app_view(root)
+root.geometry("1200x800+10+10")
+app = AppView(root)
 root.mainloop()
