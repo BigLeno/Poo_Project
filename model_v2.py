@@ -25,6 +25,26 @@ class Mercado:
     
     def __repr__(self):
         return f'Mercado: {self.mercado}, Localização: {(self.localizacao())}'
+    
+class Banco_de_Dados(Exception):
+    pass
+
+class Database:
+    def __init__(self, database) -> None:
+        try:
+            self.__data = pd.read_csv(database)
+            print(f"Lendo o banco de dados: {database}")
+            
+        except Banco_de_Dados as erro:
+            raise Banco_de_Dados(f"Foi encontrado uma exceção: {erro}")
+
+    @property
+    def data(self):
+        """Retorna o banco de dados"""
+        return self.__data
+            
+
+
 
 class Model:
     """
@@ -32,15 +52,16 @@ class Model:
         Classe responsável por gerenciar os acessos aos itens no DataBase (DB).
     
     """
+    database = './DataBase/data.csv'
+    location='./Database/location.csv'
 
-    def __init__(self, database='./DataBase/data.csv', location='./Database/location.csv') -> None:
+    def __init__(self) -> None:
         """
             Construtor da classe Model.
         """
-        self.database = database
-        self.location = location
-        self.db = pd.read_csv(self.database)
-        self.lc = pd.read_csv(self.location)
+        self.db = Database(Model.database).data
+        self.lc = Database(Model.location).data
+        
 
     
     def encontra_produto(self, produto: str) -> List[Produto]:
@@ -128,7 +149,7 @@ class Model:
         """
         try:
             self.db.loc[len(self.db)] = item
-            self.db.to_csv(self.database, index=False)
+            self.db.to_csv(Model.database, index=False)
 
         except Exception as e:
             raise f"Erro ao adicionar o item: {str(e)}"
@@ -145,10 +166,10 @@ class Model:
         try:
             linhas_remover = self.db[self.db.apply(lambda row: row.tolist() == item, axis=1)]
             self.db.drop(linhas_remover.index, inplace=True)
-            self.db.to_csv(self.database, index=False)
+            self.db.to_csv(Model.database, index=False)
         
         except Exception as e:
-            return f"Erro ao remover o item: {str(e)}"
+            raise f"Erro ao remover o item: {str(e)}"
 
     def adiciona_item_lc(self, item: List[str]) -> None:
         """
@@ -161,7 +182,7 @@ class Model:
         """
         try:
             self.lc.loc[len(self.lc)] = item
-            self.lc.to_csv(self.location, index=False)
+            self.lc.to_csv(Model.location, index=False)
 
         except Exception as e:
             raise f"Erro ao adicionar o item: {str(e)}"
@@ -179,7 +200,7 @@ class Model:
         try:
             linhas_remover = self.lc[self.lc.apply(lambda row: row.tolist() == item, axis=1)]
             self.lc.drop(linhas_remover.index, inplace=True)
-            self.lc.to_csv(self.location, index=False)
+            self.lc.to_csv(Model.location, index=False)
 
         except Exception as e:
             raise f"Erro ao remover o item: {str(e)}"
@@ -221,3 +242,6 @@ class Model:
 
 
 
+obj = Model()
+
+print(obj.remove_item_db(['valor1', 'valor2', 'valor3', 'valor4', 'valor5', 'valor6']))
