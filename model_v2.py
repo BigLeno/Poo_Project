@@ -3,12 +3,12 @@ import pandas as pd
 
 class Produto:
     """Uma classe que representa cada objeto"""
-    def __init__(self, descricao, mercado, unit_value):
+    def __init__(self, descricao, mercado, unit_value, index):
         """Objeto que representa um produto"""
         self.descricao = descricao # Descrição do produto
         self.mercado   = mercado    # Nome do mercado onde
         self.unit_value  = unit_value# Valor unitário
-
+        self.index = index
     def __repr__(self):
         return f"descrição: {self.descricao}, mercado: {self.mercado}, preço: {self.unit_value}"
 
@@ -18,35 +18,29 @@ class Mercado:
         """Objeto que representa um Supermercado"""
         self.resultado = resultado
         self.mercado = mercado
-    
     def localizacao(self):
         """Método que pega as coordenadas"""
         return self.resultado['x'].values[0], self.resultado['y'].values[0]
-    
     def __repr__(self):
         return f'Mercado: {self.mercado}, Localização: {(self.localizacao())}'
     
-class Banco_de_Dados(Exception):
+class BD(Exception):
     """Erro personalizado"""
-    pass
 
 class Database:
+    """Classe responsável por abrir os DB's"""
     def __init__(self, database) -> None:
         try:
             self.__data = pd.read_csv(database)
             print(f"Lendo o banco de dados: {database}")
-            
-        except Banco_de_Dados as erro:
-            raise Banco_de_Dados(f"Foi encontrado uma exceção: {erro}")
+        except BD as erro:
+            print(f"Foi encontrado uma exceção: {erro}")
 
     @property
-    def data(self):
+    def data(self) -> pd:
         """Retorna o banco de dados"""
         return self.__data
-            
-
-
-
+    
 class Model:
     """
     @brief
@@ -81,13 +75,11 @@ class Model:
             produtos_encontrados = []
             mercados_exibidos = set()
             for index, row in resultado.iterrows():
-                produto = Produto(row["description"], row["razao"], row["unit_value"])
+                produto = Produto(row["description"], row["razao"], row["unit_value"], index)
                 if produto.mercado not in mercados_exibidos:
                     mercados_exibidos.add(produto.mercado)
                     produtos_encontrados.append(produto)
-                        
             return produtos_encontrados
-
         except Exception as err:
             raise f"Erro ao encontrar o item: {str(err)}"
     
@@ -109,22 +101,19 @@ class Model:
         try:
             produtos_encontrados = []
             mercados_exibidos = set()
-
             for index, row in self.db.iterrows():
                 if marca in row['description']:
-                    produto = Produto(row["description"], row["razao"], row["unit_value"])
+                    produto = Produto(row["description"], row["razao"], row["unit_value"], index)
                     if produto.mercado not in mercados_exibidos:
                         mercados_exibidos.add(produto.mercado)
                         produtos_encontrados.append(produto)
-            
             return produtos_encontrados
-            
         except Exception as err:
             raise f"Erro ao encontrar o item: {str(err)}"
 
     def encontra_mercado(self, mercado: str) -> Tuple[float, float]:
         """
-        Método abstrato responsável por procurar um mercado no banco de dados e obter suas coordenadas.
+        Método responsável por pesquisar o mercado no db.
 
         @param mercado:
             Uma string contendo o nome do mercado a ser pesquisado no banco de dados.
@@ -134,7 +123,6 @@ class Model:
         """
         try:
             return Mercado(mercado, self.lc[self.lc['name'] == mercado])
-        
         except Exception as err:
             raise f"Erro ao encontrar o item: {str(err)}"
 
@@ -151,7 +139,6 @@ class Model:
         try:
             self.db.loc[len(self.db)] = item
             self.db.to_csv(Model.database, index=False)
-
         except Exception as err:
             raise f"Erro ao adicionar o item: {str(err)}"
 
@@ -168,7 +155,6 @@ class Model:
             linhas_remover = self.db[self.db.apply(lambda row: row.tolist() == item, axis=1)]
             self.db.drop(linhas_remover.index, inplace=True)
             self.db.to_csv(Model.database, index=False)
-        
         except Exception as err:
             raise f"Erro ao remover o item: {str(err)}"
 
@@ -184,7 +170,6 @@ class Model:
         try:
             self.lc.loc[len(self.lc)] = item
             self.lc.to_csv(Model.location, index=False)
-
         except Exception as err:
             raise f"Erro ao adicionar o item: {str(err)}"
 
@@ -218,7 +203,6 @@ class Model:
         """
         try:
             return self.db['razao'].unique().tolist()
-        
         except Exception as err:
             raise f"Erro ao listar os items: {str(err)}"
     
@@ -230,13 +214,10 @@ class Model:
                 Lista os Produtos no banco de dados.
 
             @return:
-            Um dicionário com as seguintes chaves:
-                - 'status': Uma string indicando o status da busca ('success' ou 'error').
-                - 'Produtos': Uma lista de strings contendo os nomes dos Produtos disponíveis no banco de dados da Model.
+                Lista com o nome dos produtos.
         """
         try:
             return self.db['description'].unique().tolist()
-            
         except Exception as err:
             raise f"Erro ao listar os items: {str(err)}"
 
@@ -244,5 +225,4 @@ class Model:
 
 
 obj = Model()
-
 print(obj.remove_item_db(['valor1', 'valor2', 'valor3', 'valor4', 'valor5', 'valor6']))
