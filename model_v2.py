@@ -27,6 +27,7 @@ class Mercado:
         return f'Mercado: {self.mercado}, Localização: {(self.localizacao())}'
     
 class Banco_de_Dados(Exception):
+    """Erro personalizado"""
     pass
 
 class Database:
@@ -87,8 +88,8 @@ class Model:
                         
             return produtos_encontrados
 
-        except Exception as e:
-            raise f"Erro ao encontrar o item: {str(e)}"
+        except Exception as err:
+            raise f"Erro ao encontrar o item: {str(err)}"
     
     def encontra_marca(self, marca: str) -> List[Produto]:
         """
@@ -118,8 +119,8 @@ class Model:
             
             return produtos_encontrados
             
-        except Exception as e:
-            raise f"Erro ao encontrar o item: {str(e)}"
+        except Exception as err:
+            raise f"Erro ao encontrar o item: {str(err)}"
 
     def encontra_mercado(self, mercado: str) -> Tuple[float, float]:
         """
@@ -134,8 +135,8 @@ class Model:
         try:
             return Mercado(mercado, self.lc[self.lc['name'] == mercado])
         
-        except Exception as e:
-            raise f"Erro ao encontrar o item: {str(e)}"
+        except Exception as err:
+            raise f"Erro ao encontrar o item: {str(err)}"
 
     def adiciona_item_db(self, item: List[str]) -> None:
         """
@@ -151,8 +152,8 @@ class Model:
             self.db.loc[len(self.db)] = item
             self.db.to_csv(Model.database, index=False)
 
-        except Exception as e:
-            raise f"Erro ao adicionar o item: {str(e)}"
+        except Exception as err:
+            raise f"Erro ao adicionar o item: {str(err)}"
 
     def remove_item_db(self, item: List[str]) -> None:
         """
@@ -168,8 +169,8 @@ class Model:
             self.db.drop(linhas_remover.index, inplace=True)
             self.db.to_csv(Model.database, index=False)
         
-        except Exception as e:
-            raise f"Erro ao remover o item: {str(e)}"
+        except Exception as err:
+            raise f"Erro ao remover o item: {str(err)}"
 
     def adiciona_item_lc(self, item: List[str]) -> None:
         """
@@ -184,8 +185,8 @@ class Model:
             self.lc.loc[len(self.lc)] = item
             self.lc.to_csv(Model.location, index=False)
 
-        except Exception as e:
-            raise f"Erro ao adicionar o item: {str(e)}"
+        except Exception as err:
+            raise f"Erro ao adicionar o item: {str(err)}"
 
     def remove_item_lc(self, item: List[str]) -> None:
         """
@@ -202,8 +203,8 @@ class Model:
             self.lc.drop(linhas_remover.index, inplace=True)
             self.lc.to_csv(Model.location, index=False)
 
-        except Exception as e:
-            raise f"Erro ao remover o item: {str(e)}"
+        except Exception as err:
+            raise f"Erro ao remover o item: {str(err)}"
 
     def lista_mercados(self) -> List[str]:
         """
@@ -218,8 +219,8 @@ class Model:
         try:
             return self.db['razao'].unique().tolist()
         
-        except Exception as e:
-            raise f"Erro ao listar os items: {str(e)}"
+        except Exception as err:
+            raise f"Erro ao listar os items: {str(err)}"
     
     def lista_produtos(self) -> List[str]:
         """
@@ -236,8 +237,8 @@ class Model:
         try:
             return self.db['description'].unique().tolist()
             
-        except Exception as e:
-            raise f"Erro ao listar os items: {str(e)}"
+        except Exception as err:
+            raise f"Erro ao listar os items: {str(err)}"
 
 
 
