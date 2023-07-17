@@ -16,7 +16,7 @@ class Controle:
     def filtro_produtos(self, produto, lista_dados):
 
         produtos_encontrados = self.model.encontra_produto(produto)
-        
+
         for produto in produtos_encontrados:
             lista_dados.append([produto.descricao, produto.mercado, produto.unit_value])
 
@@ -34,6 +34,7 @@ class Controle:
 
 
 class dados:
+    
     def __init__(self, arg):
         super(dados, self).__init__()
 
