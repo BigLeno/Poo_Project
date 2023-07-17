@@ -4,7 +4,9 @@ from tkinter import ttk
 from tkintermapview import TkinterMapView
 
 class app_view:
+
     def __init__(self, root):
+
         self.root = root
         self.controle = Controle()
         self.root.title("Nome do App")
@@ -50,10 +52,9 @@ class app_view:
         self.radio_var = tk.StringVar()
         self.radio_var.set("Menor preço")
         self.radio_frame = tk.Frame(self.frame_direito, bg="light grey")
-        self.radio_label = tk.Label(
-            self.radio_frame, bg="light grey", text="Ordenar por:"
-        )
+        self.radio_label = tk.Label(self.radio_frame, bg="light grey", text="Ordenar por:")
         self.radio_label.grid(row=0, column=0, sticky=tk.W)
+
         self.radio_button1 = tk.Radiobutton(
             self.radio_frame,
             bg="light grey",
@@ -62,7 +63,9 @@ class app_view:
             value="Menor preço",
             command=self.ordenar_menor_preco,
         )
+
         self.radio_button1.grid(row=0, column=1, sticky=tk.W)
+
         self.radio_button2 = tk.Radiobutton(
             self.radio_frame,
             bg="light grey",
@@ -72,6 +75,7 @@ class app_view:
             command=self.ordenar_maior_preco,
         )
         self.radio_button2.grid(row=1, column=1, sticky=tk.W)
+
         self.radio_frame.grid(row=1, column=0, sticky="w")
 
         self.map_type_var = tk.StringVar()
@@ -81,6 +85,7 @@ class app_view:
             self.map_type_frame, bg="light grey", text="Tipo de Mapa:"
         )
         self.map_type_label.grid(row=0, column=0, sticky=tk.W)
+
         self.map_type_button1 = tk.Radiobutton(
             self.map_type_frame,
             bg="light grey",
@@ -89,6 +94,7 @@ class app_view:
             value="Padrão",
             command=self.mudar_tipo_mapa,
         )
+
         self.map_type_button1.grid(row=0, column=1, sticky=tk.W)
         self.map_type_button2 = tk.Radiobutton(
             self.map_type_frame,
@@ -98,6 +104,7 @@ class app_view:
             value="Satélite",
             command=self.mudar_tipo_mapa,
         )
+        
         self.map_type_button2.grid(row=1, column=1, sticky=tk.W)
         self.map_type_frame.grid(row=2, column=0, sticky="w")
 
@@ -162,6 +169,7 @@ class app_view:
     def criar_marcador(self, coordenadas, nome):
         lat, lon = coordenadas
         self.mapview.set_marker(lat, lon, text=nome)
+
 class Tabela(tk.Frame):
     def __init__(self, pai, tit_cols):
         tk.Frame.__init__(self, pai)
