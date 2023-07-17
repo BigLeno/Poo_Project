@@ -25,7 +25,7 @@ class Controle:
 
         coordenadas = mercado_encontrado.localizacao()
 
-        self.app_view.criar_marcador(coordenadas, mercado)
+        self.view.criar_marcador(coordenadas, mercado)
 
     def consultar_localizacao(self, mercado):
         mercado_achei = self.model.encontra_mercado(mercado)
