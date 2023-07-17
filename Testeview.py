@@ -1,17 +1,21 @@
 import tkinter as tk
+from Controle import Controle
 from tkinter import ttk
 from tkintermapview import TkinterMapView
 
 class app_view:
     def __init__(self, root):
         self.root = root
+        self.controle = Controle()
         self.root.title("Nome do App")
         self.lista_lojas=["Selecione uma loja"]
         # função da classe controle para conferir todas as lojas disponíveis
-        #self.controle.lista_lojas(self.lista_lojas)
+        self.controle.lista_lojas(self.lista_lojas)
         self.lista_produtos=["Selecione um produto"]
+        self.lista_dados = []
         # função da classe controle para conferir todos os produtos disponíveis
-        #self.controle.lista_produtos(self.lista_produtos)
+        self.controle.lista_produtos(self.lista_produtos)
+        #self.inicializa_marcadores()
 
         # Frame superior com o texto "Nome do App"
         self.frame_superior = tk.Frame(self.root)
@@ -113,9 +117,13 @@ class app_view:
         )
         self.frame_inferior.grid(row=2, column=0, columnspan=2, sticky="nsew")
 
+        
+
         self.root.grid_rowconfigure(1, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_columnconfigure(1, weight=1)
+
+
 
     def mudar_tipo_mapa(self):
         tipo_mapa = self.map_type_var.get()
@@ -129,18 +137,27 @@ class app_view:
         item_produtos = self.combobox_produtos.get()
         item_lojas = self.combobox_mercados.get()
         if item_produtos != "Selecione um produto":
-            self.frame_inferior.remover_linhas(item_produtos,"Produto")
-            #self.controle.filtro_produtos(item_produtos)
+            self.frame_inferior.remover_linhas(item_produtos, "Produto")
+            self.controle.filtro_produtos(item_produtos,self.lista_dados)
+            for dados in self.lista_dados:
+                self.frame_inferior.adiciona_dado(dados)
         if item_lojas != "Selecione uma loja":
             self.mapview.delete_all_marker()
-            self.frame_inferior.remover_linhas(item_lojas,"Mercado")
-            #self.controle.filtro_lojas(item_lojas)
+            mark = self.controle.consultar_localizacao(item_lojas)
+            self.criar_marcador(mark,item_lojas)
+            self.frame_inferior.remover_linhas(item_lojas, "Mercado")
+            self.controle.filtro_lojas(item_lojas)
 
     def ordenar_menor_preco(self):
         self.frame_inferior.ordena_crescente("Preço")
 
     def ordenar_maior_preco(self):
         self.frame_inferior.ordena_decrescente("Preço")
+
+    def inicializa_marcadores(self):
+        for mercado in self.lista_lojas:
+            mark = self.controle.consultar_localizacao(str(mercado))
+            self.criar_marcador(mark,str(mercado))
 
     def criar_marcador(self, coordenadas, nome):
         lat, lon = coordenadas
