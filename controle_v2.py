@@ -1,6 +1,6 @@
 import tkinter as tk
 from model_v2 import Model
-from Testeview import app_view, Produtos_dados, Mercado_local
+from Testeview_v2 import app_view, Produtos_dados, Mercado_local
 
 class Controle:
     def __init__(self):
