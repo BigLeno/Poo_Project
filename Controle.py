@@ -22,8 +22,10 @@ class Controle:
 
     def filtro_lojas(self, mercado):
         mercado_encontrado = self.model.encontra_mercado(mercado)
+
         coordenadas = mercado_encontrado.localizacao()
-        self.view.criar_marcador(coordenadas, mercado)
+
+        self.app_view.criar_marcador(coordenadas, mercado)
 
     def consultar_localizacao(self, mercado):
         mercado_achei = self.model.encontra_mercado(mercado)
@@ -34,7 +36,7 @@ class Controle:
 
 
 class dados:
-    
+
     def __init__(self, arg):
         super(dados, self).__init__()
 
