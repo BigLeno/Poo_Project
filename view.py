@@ -4,13 +4,14 @@ from tkintermapview import TkinterMapView
 
 
 class View:
-    def __init__(self):
+    def __init__(self) -> None:
         print("Iniciando o Módulo View")
         self.root = tk.Tk()
         self.root.title("View em App")
         self.root.geometry("600x480+100+100")
         
-    def inicializar(self, lista_lojas, lista_produtos, lista_geral_mercados):
+    def inicializar(self, lista_lojas, lista_produtos, lista_geral_mercados) -> None:
+        """Inicializador da classe View"""
         self.lista_lojas=["Selecione uma loja"]
         self.lista_lojas.extend(lista_lojas)
         self.lista_produtos=["Selecione um produto"]
@@ -19,7 +20,8 @@ class View:
         self.inicializa_view()
         self.inicializa_marcadores()
 
-    def inicializa_view(self):
+    def inicializa_view(self) -> None:
+        """Método que inicializa o view"""
         # Frame superior com o texto "Nome do App"
         self.frame_superior = tk.Frame(self.root)
         self.label_nome_app = tk.Label(self.frame_superior, text="Nome do App")
@@ -120,39 +122,43 @@ class View:
         )
         self.frame_inferior.grid(row=2, column=0, columnspan=2, sticky="nsew")
 
-        
-
         self.root.grid_rowconfigure(1, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_columnconfigure(1, weight=1)
 
-    def mudar_tipo_mapa(self):
+    def mudar_tipo_mapa(self) -> None:
+        """Método responsável por mudar o tipo do mapa"""
         tipo_mapa = self.map_type_var.get()
-
         if tipo_mapa == "Satélite":
             self.mapview.set_tile_server("https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
         elif tipo_mapa == "Padrão":
             self.mapview.set_tile_server("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
 
-    def ordenar_menor_preco(self):
+    def ordenar_menor_preco(self) -> None:
+        """Método que orderna o frame inferior"""
         self.frame_inferior.ordena_crescente("Preço")
 
-    def ordenar_maior_preco(self):
+    def ordenar_maior_preco(self) -> None:
+        """Método que ordena o frame inferior"""
         self.frame_inferior.ordena_decrescente("Preço")
 
-    def inicializa_marcadores(self):
+    def inicializa_marcadores(self) -> None:
+        """Método que inicializa o marcador"""
         for mercado in self.lista_geral_mercados:
             self.criar_marcador(mercado.localizacao(),mercado.nome)
 
-    def criar_marcador(self, coordenadas, nome):
+    def criar_marcador(self, coordenadas, nome) -> None:
+        """Método que cria os marcadores"""
         lat, lon = coordenadas
         self.mapview.set_marker(lat, lon, text=nome)
 
-    def atualiza_tabela(self, novos_dados):
+    def atualiza_tabela(self, novos_dados) -> None:
+        """Método que atualiza a tabela"""
         for dados in novos_dados:
                 self.frame_inferior.adiciona_dado(dados)
     
-    def atualiza_marcadores(self, novos_marcadores):
+    def atualiza_marcadores(self, novos_marcadores) -> None:
+        """Método que atualiza os marcadores"""
         self.mapview.delete_all_marker()
         for marcador in novos_marcadores:
             mark = marcador
@@ -166,16 +172,10 @@ class Tabela(tk.Frame):
         self._inicializa_gui(pai)
 
     def _inicializa_gui(self, pai):
-        self._tv = ttk.Treeview(
-            self, columns=self._nomes_cols, show="headings"
-        )
-        self._sb_y = ttk.Scrollbar(
-            self, orient=tk.VERTICAL, command=self._tv.yview
-        )
+        self._tv = ttk.Treeview(self, columns=self._nomes_cols, show="headings")
+        self._sb_y = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self._tv.yview)
         self._tv.configure(yscroll=self._sb_y.set)
-        self._sb_x = ttk.Scrollbar(
-            self, orient=tk.HORIZONTAL, command=self._tv.xview
-        )
+        self._sb_x = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self._tv.xview)
         self._tv.configure(xscroll=self._sb_x.set)
 
         for tit in self._nomes_cols:
@@ -191,10 +191,7 @@ class Tabela(tk.Frame):
 
     def adiciona_dado(self, strings_cols):
         if len(strings_cols) != len(self._nomes_cols):
-            raise Exception(
-                f'Lista deve conter {len(self._nomes_cols)} strings (lista passada contém {len(strings_cols)})'
-            )
-
+            raise Exception(f'Lista deve conter {len(self._nomes_cols)} strings (lista passada contém {len(strings_cols)})')
         self._tv.insert("", tk.END, values=strings_cols)
 
     def remove_dados(self, pos):

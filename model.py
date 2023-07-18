@@ -57,11 +57,11 @@ class Model:
         """
             Construtor da classe Model.
         """
-        print("Iniciando o módulo Model")
+        print("\n")
         self.db = Database(Model.database).data
         self.lc = Database(Model.location).data
+        print("\nIniciando o módulo Model")
         
-
     
     def encontra_produto(self, produto: str) -> List[Produto]:
         """
