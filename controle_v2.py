@@ -36,14 +36,33 @@ class Controle:
         return lista_dados
 
     def pegar_todos_produtos_dados(self):
-        lista_produtos = self.pegar_lista_produtos()
-        todos_produtos_dados = []
-        for produto in lista_produtos:
-            dados = self.encontrar_produtos_iguais(produto)
-            for produto_dados in dados:
-                produto_lis = Produtos_dados(produto_dados.descricao, produto_dados.mercado, produto_dados.unit_value)
-                todos_produtos_dados.append(produto_lis)
-        return todos_produtos_dados
+
+        lista_produtos = self.model.lista_produtos()
+
+        return lista_produtos
+    
+       # todos_produtos_dados = []
+
+        #for produtos in lista_produtos:
+
+          #  dados = self.encontrar_produtos_iguais(produtos)
+
+            #for iguais in dados:
+
+               # iguais_produto = Produtos_dados(iguais.produto, iguais.mercado, iguais.preco)
+
+                #todos_produtos_dados.append(iguais_produto)
+
+                #print(f"foi {todos_produtos_dados}")
+
+
+
+        #for produto in lista_produtos:
+            #dados = self.encontrar_produtos_iguais(produto)
+            #for produto_dados in dados:
+               # produto_lis = Produtos_dados(produto_dados.descricao, produto_dados.mercado, produto_ddados.unit_value)
+                #todos_produtos_dados.append(produto_lis)
+        #return todos_produtos_dados
 
     def encontrar_mercado_e_localizacao(self, mercado):
         mercado_encontrado = self.model.encontra_mercado(mercado)
