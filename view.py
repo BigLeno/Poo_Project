@@ -1,33 +1,178 @@
 import tkinter as tk
 from tkinter import ttk
+from tkintermapview import TkinterMapView
+
+
+class View:
+    def __init__(self) -> None:
+        print("Iniciando o Módulo View")
+        self.root = tk.Tk()
+        self.root.title("View em App")
+        self.root.geometry("600x480+100+100")
+        
+    def inicializar(self, lista_lojas, lista_produtos, lista_geral_mercados) -> None:
+        """Inicializador da classe View"""
+        self.lista_lojas=["Selecione uma loja"]
+        self.lista_lojas.extend(lista_lojas)
+        self.lista_produtos=["Selecione um produto"]
+        self.lista_produtos.extend(lista_produtos)
+        self.lista_geral_mercados = lista_geral_mercados
+        self.inicializa_view()
+        self.inicializa_marcadores()
+
+    def inicializa_view(self) -> None:
+        """Método que inicializa o view"""
+        # Frame superior com o texto "Nome do App"
+        self.frame_superior = tk.Frame(self.root)
+        self.label_nome_app = tk.Label(self.frame_superior, text="Nome do App")
+        self.label_nome_app.pack()
+        self.frame_superior.grid(row=0, column=0)
+
+        # Frame esquerdo com mapa
+        self.frame_esquerdo = tk.Frame(self.root)
+        self.mapview = TkinterMapView(self.frame_esquerdo, width=800, height=600, corner_radius=0)
+        self.mapview.set_position(-5.7936, -35.1989)
+        self.mapview.set_zoom(10)
+        self.mapview.pack(fill=tk.BOTH, expand=True)
+        self.frame_esquerdo.grid(row=1, column=0, columnspan=2, sticky="nsew")
+
+        # Frame direito com comboboxes, radiobuttons e botão
+        self.frame_direito = tk.Frame(self.root, bg="light grey")
+        self.comboboxes_frame = tk.Frame(self.frame_direito)
+        self.combobox_label_produtos = tk.Label(self.comboboxes_frame, text="Produtos")
+        self.combobox_label_produtos.grid(row=0, column=0, sticky=tk.W)
+        self.combobox_produtos = ttk.Combobox(self.comboboxes_frame, values=self.lista_produtos)
+        self.combobox_produtos.current(0)
+        self.combobox_produtos.grid(row=0, column=1, sticky=tk.W)
+
+        self.combobox_label_mercados = tk.Label(self.comboboxes_frame, text="Mercados")
+        self.combobox_label_mercados.grid(row=1, column=0, sticky=tk.W)
+        self.combobox_mercados = ttk.Combobox(self.comboboxes_frame,  values=self.lista_lojas)
+        self.combobox_mercados.current(0)
+        self.combobox_mercados.grid(row=1, column=1, sticky=tk.W)
+
+        self.comboboxes_frame.grid(row=0, column=0, sticky="ew")
+        self.radio_var = tk.StringVar()
+        self.radio_var.set("Menor preço")
+        self.radio_frame = tk.Frame(self.frame_direito, bg="light grey")
+        self.radio_label = tk.Label(
+            self.radio_frame, bg="light grey", text="Ordenar por:"
+        )
+        self.radio_label.grid(row=0, column=0, sticky=tk.W)
+        self.radio_button1 = tk.Radiobutton(
+            self.radio_frame,
+            bg="light grey",
+            text="Menor preço",
+            variable=self.radio_var,
+            value="Menor preço",
+            command=self.ordenar_menor_preco,
+        )
+        self.radio_button1.grid(row=0, column=1, sticky=tk.W)
+        self.radio_button2 = tk.Radiobutton(
+            self.radio_frame,
+            bg="light grey",
+            text="Maior preço",
+            variable=self.radio_var,
+            value="Maior preço",
+            command=self.ordenar_maior_preco,
+        )
+        self.radio_button2.grid(row=1, column=1, sticky=tk.W)
+        self.radio_frame.grid(row=1, column=0, sticky="w")
+
+        self.map_type_var = tk.StringVar()
+        self.map_type_var.set("Padrão")
+        self.map_type_frame = tk.Frame(self.frame_direito, bg="light grey")
+        self.map_type_label = tk.Label(
+            self.map_type_frame, bg="light grey", text="Tipo de Mapa:"
+        )
+        self.map_type_label.grid(row=0, column=0, sticky=tk.W)
+        self.map_type_button1 = tk.Radiobutton(
+            self.map_type_frame,
+            bg="light grey",
+            text="Padrão",
+            variable=self.map_type_var,
+            value="Padrão",
+            command=self.mudar_tipo_mapa,
+        )
+        self.map_type_button1.grid(row=0, column=1, sticky=tk.W)
+        self.map_type_button2 = tk.Radiobutton(
+            self.map_type_frame,
+            bg="light grey",
+            text="Satélite",
+            variable=self.map_type_var,
+            value="Satélite",
+            command=self.mudar_tipo_mapa,
+        )
+        self.map_type_button2.grid(row=1, column=1, sticky=tk.W)
+        self.map_type_frame.grid(row=2, column=0, sticky="w")
+
+        self.filtrar_button = tk.Button(
+            self.frame_direito,
+            bg="light grey",
+            text="Filtrar",
+            command=self.filtrar_items,
+        )
+        self.filtrar_button.grid(row=3, column=0)
+
+        self.frame_direito.grid(row=1, column=1, sticky="e")
+
+        # Frame inferior com Treeview
+        self.frame_inferior = Tabela(
+            self.root, ["Produto", "Mercado", "Preço"]
+        )
+        self.frame_inferior.grid(row=2, column=0, columnspan=2, sticky="nsew")
+
+        self.root.grid_rowconfigure(1, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+        self.root.grid_columnconfigure(1, weight=1)
+
+    def mudar_tipo_mapa(self) -> None:
+        """Método responsável por mudar o tipo do mapa"""
+        tipo_mapa = self.map_type_var.get()
+        if tipo_mapa == "Satélite":
+            self.mapview.set_tile_server("https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
+        elif tipo_mapa == "Padrão":
+            self.mapview.set_tile_server("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
+
+    def ordenar_menor_preco(self) -> None:
+        """Método que orderna o frame inferior"""
+        self.frame_inferior.ordena_crescente("Preço")
+
+    def ordenar_maior_preco(self) -> None:
+        """Método que ordena o frame inferior"""
+        self.frame_inferior.ordena_decrescente("Preço")
+
+    def inicializa_marcadores(self) -> None:
+        """Método que inicializa o marcador"""
+        for mercado in self.lista_geral_mercados:
+            self.criar_marcador(mercado.localizacao(),mercado.nome)
+
+    def criar_marcador(self, coordenadas, nome) -> None:
+        """Método que cria os marcadores"""
+        lat, lon = coordenadas
+        self.mapview.set_marker(lat, lon, text=nome)
+
+    def atualiza_tabela(self, novos_dados) -> None:
+        """Método que atualiza a tabela"""
+        for dados in novos_dados:
+                self.frame_inferior.adiciona_dado(dados)
+    
+    def atualiza_marcadores(self, novos_marcadores) -> None:
+        """Método que atualiza os marcadores"""
+        self.mapview.delete_all_marker()
+        for marcador in novos_marcadores:
+            mark = marcador
+            self.criar_marcador(mark.coordenadas,mark.nome_mercado)
+    
 
 class Tabela(tk.Frame):
-    """
-    Classe que representa uma tabela.
-
-    @brief Classe responsável por exibir uma tabela com colunas e dados.
-    """
-
     def __init__(self, pai, tit_cols):
-        """
-        Construtor da classe Tabela.
-
-        @brief Inicializa uma nova instância da classe Tabela.
-        @param pai: O widget pai onde a tabela será exibida.
-        @param tit_cols: Uma lista contendo os títulos das colunas da tabela.
-        """
         tk.Frame.__init__(self, pai)
         self._nomes_cols = tit_cols
         self._inicializa_gui(pai)
 
     def _inicializa_gui(self, pai):
-        """
-        Inicializa a interface gráfica da tabela.
-
-        @brief Inicializa a interface gráfica da tabela.
-        @param pai: O widget pai onde a tabela será exibida.
-        """
-        self._tv = ttk.Treeview(self, columns=self._nomes_cols, show='headings')
+        self._tv = ttk.Treeview(self, columns=self._nomes_cols, show="headings")
         self._sb_y = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self._tv.yview)
         self._tv.configure(yscroll=self._sb_y.set)
         self._sb_x = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self._tv.xview)
@@ -37,178 +182,58 @@ class Tabela(tk.Frame):
             self._tv.heading(tit, text=tit)
             self._tv.column(tit, width=90, minwidth=100)
 
-        self._tv.grid(row=0, column=0, sticky='nsew')
-        self._sb_y.grid(row=0, column=1, sticky='ns')
-        self._sb_x.grid(row=1, column=0, columnspan=1, sticky='we')
+        self._tv.grid(row=0, column=0, sticky="nsew")
+        self._sb_y.grid(row=0, column=1, sticky="ns")
+        self._sb_x.grid(row=1, column=0, columnspan=1, sticky="we")
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
     def adiciona_dado(self, strings_cols):
-        """
-        Adiciona um dado à tabela.
-
-        @brief Adiciona um novo dado à tabela.
-        @param strings_cols: Uma lista contendo os valores das colunas para o novo dado.
-        @throws Exception: Se o número de valores passados não corresponder ao número de colunas.
-        """
         if len(strings_cols) != len(self._nomes_cols):
             raise Exception(f'Lista deve conter {len(self._nomes_cols)} strings (lista passada contém {len(strings_cols)})')
+        self._tv.insert("", tk.END, values=strings_cols)
 
-        self._tv.insert('', tk.END, values=strings_cols)
+    def remove_dados(self, pos):
+        items = self._tv.get_children()
+        if pos < 0 or pos >= len(items):
+            raise Exception(f"Posição inválida: {pos}")
 
+        item = items[pos]
+        self._tv.delete(item)
 
+    def ordena_crescente(self, coluna):
+        items = self._tv.get_children()
+        valores = []
 
-class View:
-    """
-    Classe responsável pelo View do projeto de gerenciamento.
-    """
+        for item in items:
+            valor = self._tv.set(item, coluna)
+            valores.append((valor, item))
 
-    root = tk.Tk()
-    combobox_produtos = ''
-    combobox_mercados = ''
-    combobox_marcas = ''
-    radio_var = tk.StringVar()
+        valores.sort(key=lambda x: x[0])
 
-    def __init__(self) -> None:
-        """
-            A classe não deve ser instânciada.
-        """
+        for idx, (_, item) in enumerate(valores):
+            self._tv.move(item, "", idx)
 
-    @staticmethod
-    def inicializa_gui() -> None:
-        """
-        Inicializa a interface gráfica.
+    def ordena_decrescente(self, coluna):
+        items = self._tv.get_children()
+        valores = []
 
-        @brief Inicializa a interface gráfica do aplicativo.
-        """
-        View.root.title('View em App')
-        View.root.geometry('600x480+100+100')
+        for item in items:
+            valor = self._tv.set(item, coluna)
+            valores.append((valor, item))
 
-    @staticmethod
-    def frame_superior() -> None:
-        """
-        Cria o frame superior da interface gráfica.
+        valores.sort(key=lambda x: x[0], reverse=True)
 
-        @brief Cria o frame superior da interface gráfica.
-        """
-        frame_superior = tk.Frame(View.root)
-        label_nome_app = tk.Label(frame_superior, text="Nome do App")
-        label_nome_app.pack()
-        frame_superior.grid(row=0, column=0)
+        for idx, (_, item) in enumerate(valores):
+            self._tv.move(item, "", idx)
+    
+    def remover_linhas(self, string, coluna):
+        items = self._tv.get_children()
 
-    @staticmethod
-    def frame_esquerdo() -> None:
-        """
-        Cria o frame esquerdo da interface gráfica.
-
-        @brief Cria o frame esquerdo da interface gráfica.
-        """
-        frame_esquerdo = tk.Frame(View.root, bg="green")
-        frame_esquerdo.grid(row=1, column=0, columnspan=2, sticky="nsew")
-
-    @staticmethod
-    def frame_direito() -> None:
-        """
-        Cria o frame direito da interface gráfica.
-
-        @brief Cria o frame direito da interface gráfica.
-        """
-        frame_direito = tk.Frame(View.root, bg='light grey')
-        comboboxes_frame = tk.Frame(frame_direito)
-        combobox_label_produtos = tk.Label(comboboxes_frame, text="Produtos")
-        combobox_label_produtos.grid(row=0, column=0, sticky=tk.W)
-        View.combobox_produtos = ttk.Combobox(comboboxes_frame, values=["Selecione um produto", "item 2", "item 3"])
-        View.combobox_produtos.current(0)
-        View.combobox_produtos.grid(row=0, column=1, sticky=tk.W)
-
-        combobox_label_mercados = tk.Label(comboboxes_frame, text="Mercados")
-        combobox_label_mercados.grid(row=1, column=0, sticky=tk.W)
-        View.combobox_mercados = ttk.Combobox(comboboxes_frame, values=["Selecione uma loja", "item 2", "item 3"])
-        View.combobox_mercados.current(0)
-        View.combobox_mercados.grid(row=1, column=1, sticky=tk.W)
-
-        combobox_label_marcas = tk.Label(comboboxes_frame, text="Marcas")
-        combobox_label_marcas.grid(row=2, column=0, sticky=tk.W)
-        View.combobox_marcas = ttk.Combobox(comboboxes_frame, values=["Selecione uma marca", "item 2", "item 3"])
-        View.combobox_marcas.current(0)
-        View.combobox_marcas.grid(row=2, column=1, sticky=tk.W)
-
-        comboboxes_frame.grid(row=0, column=0, sticky="ew")
-        View.radio_var.set("Menor preço")
-        radio_frame = tk.Frame(frame_direito, bg="light grey")
-        radio_label = tk.Label(radio_frame, bg="light grey", text="Ordenar por:")
-        radio_label.grid(row=0, column=0, sticky=tk.W)
-        radio_button1 = tk.Radiobutton(radio_frame,bg="light grey",text="Menor preço",variable=View.radio_var,value="Menor preço")
-        radio_button1.grid(row=0, column=1, sticky=tk.W)
-        radio_button2 = tk.Radiobutton(radio_frame,bg="light grey",text="Maior preço",variable=View.radio_var,value="Maior preço")
-        radio_button2.grid(row=1, column=1, sticky=tk.W)
-        radio_button3 = tk.Radiobutton(radio_frame,bg="light grey",text="Menor peso",variable=View.radio_var,value="Menor peso")
-        radio_button3.grid(row=2, column=1, sticky=tk.W)
-        radio_button4 = tk.Radiobutton(radio_frame,bg="light grey",text="Maior peso",variable=View.radio_var,value="Maior peso")
-        radio_button4.grid(row=3, column=1, sticky=tk.W)
-        radio_button5 = tk.Radiobutton(radio_frame,bg="light grey",text="Custo benefício",variable=View.radio_var,value="Custo benefício")
-        radio_button5.grid(row=4, column=1, sticky=tk.W)
-        radio_frame.grid(row=1, column=0, sticky="w")
-
-        filtrar_button = tk.Button(frame_direito,bg="light grey",text="Filtrar",command=View.filtrar_items)
-        filtrar_button.grid(row=2, column=0)
-
-        frame_direito.grid(row=1, column=1, sticky="e")
-
-    @staticmethod
-    def filtrar_items() -> None:
-        """
-        Filtra os itens com base nas seleções do usuário.
-
-        @brief Filtra os itens com base nas seleções do usuário nos comboboxes e radiobuttons.
-        """
-        item_produtos = View.combobox_produtos.get()
-        item_mercados = View.combobox_mercados.get()
-        item_marcas = View.combobox_marcas.get()
-        ordenacao = View.radio_var.get()
-
-        print("Item selecionado no combobox de Produtos:", item_produtos)
-        print("Item selecionado no combobox de Mercados:", item_mercados)
-        print("Item selecionado no combobox de Marcas:", item_marcas)
-        print("Opção selecionada no radiobutton:", ordenacao)
-
-    @staticmethod
-    def frame_inferior() -> None:
-        """
-        Cria o frame inferior da interface gráfica.
-
-        @brief Cria o frame inferior da interface gráfica que contém uma tabela.
-        """
-        frame_inferior = Tabela(View.root, ["Produto", "Marca", "Mercado", "Preço", "Peso"])
-        frame_inferior.grid(row=2, column=0, columnspan=2, sticky="nsew")
-
-        View.root.grid_rowconfigure(1, weight=1)
-        View.root.grid_columnconfigure(0, weight=1)
-        View.root.grid_columnconfigure(1, weight=1)
-
-    @staticmethod
-    def loop() -> None:
-        """
-        Inicia o loopprincipal do tkinter.
-
-        @brief Inicia o loop principal do tkinter para exibir a interface gráfica.
-        """
-        View.root.mainloop()
-
-    @staticmethod
-    def main() -> None:
-        """
-        Função principal para executar o aplicativo.
-
-        @brief Função principal para executar o aplicativo de gerenciamento.
-        """
-        View.inicializa_gui()
-        View.frame_superior()
-        View.frame_esquerdo()
-        View.frame_direito()
-        View.frame_inferior()
-        View.loop()
+        for item in items:
+            valor = self._tv.set(item, coluna)
+            if valor != string:
+                self._tv.delete(item)
 
 
-View.main()
