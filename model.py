@@ -3,28 +3,30 @@ import pandas as pd
 
 class Produto:
     """Uma classe que representa cada objeto"""
-    def __init__(self, descricao, mercado, unit_value, index=None):
+    def __init__(self, descricao, mercado, unit_value, index=None) -> None:
         """Objeto que representa um produto"""
         self.descricao = descricao # Descrição do produto
         self.mercado   = mercado    # Nome do mercado onde
         self.unit_value  = unit_value# Valor unitário
         self.index = index
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Método que retorna uma string do que é o objeto"""
         return f"descrição: {self.descricao}, mercado: {self.mercado}, preço: {self.unit_value}"
 
 class Mercado:
     """Uma classe que representa cada objeto"""
-    def __init__(self, nome, local):
+    def __init__(self, nome, local) -> None:
         """Objeto que representa um Supermercado"""
         self.local = local
         self.nome = nome
-    def localizacao(self):
+    def localizacao(self) -> Tuple(float, float):
         """Método que pega as coordenadas"""
         if not self.local.empty:
             return self.local['x'].values[0], self.local['y'].values[0]
         else:
             raise ValueError("O DataFrame self.local está vazio, não é possível obter a localização.")
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Método que retorna uma string do que é o objeto"""
         return f'Mercado: {self.nome}, Localização: {(self.localizacao())}'
     
 class BD(Exception):
@@ -33,9 +35,11 @@ class BD(Exception):
 class Database:
     """Classe responsável por abrir os DB's"""
     def __init__(self, database) -> None:
+        """Objeto que representa um Database"""
+        self.database = database
         try:
-            self.__data = pd.read_csv(database)
-            print(f"Lendo o banco de dados: {database}")
+            self.__data = pd.read_csv(self.database)
+            print(f"Lendo o banco de dados: {self.database}")
         except BD as erro:
             print(f"Foi encontrado uma exceção: {erro}")
 
@@ -43,6 +47,10 @@ class Database:
     def data(self) -> pd:
         """Retorna o banco de dados"""
         return self.__data
+    
+    def __repr__(self) -> str:
+        """Método que retorna uma string do que é o objeto"""
+        return f'Banco de Dados, no caminho {self.database}'
     
 class Model:
     """
