@@ -1,8 +1,8 @@
-import tkinter as tk
 from model import Model
 from view import View
 
 class Controller(Model, View):
+    """Uma classe que representa o Controller"""
     def __init__(self) -> None:
         """Construtor da classe Controller"""
         Model.__init__(self)
