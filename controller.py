@@ -77,26 +77,29 @@ class Controller(Model, View):
 
     def filtrar_items(self) -> None:
         """Método que gere as ações do filtro"""
+
         item_produtos = self.combobox_produtos.get()
         item_lojas = self.combobox_mercados.get()
 
         if item_produtos != "Selecione um produto":
             self.inicializa_tabela()
             self.frame_inferior.remover_linhas(item_produtos, "Produto")
-            if item_lojas == "Selecione uma loja":
-                self.mapview.delete_all_marker()
-                self.filtro_marcadores(item_produtos)
+
+        self.mapview.delete_all_marker()
+
+        if item_produtos != "Selecione um produto" and item_lojas == "Selecione uma loja":
+            self.filtro_marcadores(item_produtos)
 
         elif item_lojas != "Selecione uma loja":
-            self.mapview.delete_all_marker()
             for mercado in self.lista_geral_mercados:
                 if mercado.nome == item_lojas:
-                    self.criar_marcador(mercado.localizacao(),mercado.nome)
+                    self.criar_marcador(mercado.localizacao(), mercado.nome)
             self.frame_inferior.remover_linhas(item_lojas, "Mercado")
-        
-        else:
+
+        if item_produtos == "Selecione um produto" and item_lojas == "Selecione uma loja":
             self.inicializa_marcadores()
             self.inicializa_tabela()
+
 
 
 def main():
