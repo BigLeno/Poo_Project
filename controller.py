@@ -76,21 +76,25 @@ class Controller(Model, View):
         item_produtos = self.combobox_produtos.get()
         item_lojas = self.combobox_mercados.get()
 
-        # Criar novas listas de produtos e mercados filtrados
+        self.filtrar_comboboxes(item_produtos, item_lojas)
+        self.atualizar_tabela_e_marcadores(item_produtos, item_lojas)
+
+    def filtrar_comboboxes(self, item_produtos, item_lojas) -> None:
+        """Método que filtra as comboboxes de produtos e mercados"""
         produtos_filtrados = set()
         mercados_filtrados = set()
 
-        # Filtrar produtos e mercados com base na seleção do usuário
         for produto in self.lista_geral_produtos:
             if item_lojas == "Selecione uma loja" or produto.mercado == item_lojas:
                 produtos_filtrados.add(produto.descricao)
             if item_produtos == "Selecione um produto" or produto.descricao == item_produtos:
                 mercados_filtrados.add(produto.mercado)
 
-        # Atualizar as comboboxes com os itens filtrados
         self.combobox_produtos['values'] = ["Selecione um produto"] + list(produtos_filtrados)
         self.combobox_mercados['values'] = ["Selecione uma loja"] + list(mercados_filtrados)
 
+    def atualizar_tabela_e_marcadores(self, item_produtos, item_lojas) -> None:
+        """Método que atualiza a tabela e os marcadores no mapa"""
         if item_produtos != "Selecione um produto":
             self.inicializa_tabela()
             self.frame_inferior.remover_linhas(item_produtos, "Produto")
