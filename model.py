@@ -19,7 +19,7 @@ class Mercado:
         """Objeto que representa um Supermercado"""
         self.local = local
         self.nome = nome
-    def localizacao(self) -> Tuple(float, float):
+    def localizacao(self) -> Tuple[float, float]:
         """Método que pega as coordenadas"""
         if not self.local.empty:
             return self.local['x'].values[0], self.local['y'].values[0]

@@ -24,9 +24,20 @@ class Controller(Model, View):
             self.nome_lojas.append(mercado.nome)
 
     def acessa_dados_produtos(self) -> None:
-        """Método que separa o nome do produto"""
+        """Método que separa o nome do produto sem repetição por supermercado"""
+        produtos_por_nome_mercado = {}
         for produto in self.lista_geral_produtos:
-            self.razao_produtos.append((produto.descricao))
+            chave_produto = produto.descricao
+            chave_mercado = produto.mercado
+            if chave_produto not in produtos_por_nome_mercado:
+                produtos_por_nome_mercado[chave_produto] = chave_mercado
+                self.razao_produtos.append(chave_produto)
+            else:
+                mercado_existente = produtos_por_nome_mercado[chave_produto]
+                if mercado_existente != chave_mercado:
+                    produtos_por_nome_mercado[chave_produto] = chave_mercado
+                    self.razao_produtos.append(chave_produto)
+
 
     def inicializa_app(self) -> None:
         """Método que inicializa o App"""
@@ -39,17 +50,30 @@ class Controller(Model, View):
     
     def inicializa_tabela(self) -> None:
         """Inicia o widget tabela"""
+        dados_adicionados = set()  # Conjunto para armazenar informações únicas de produto, mercado e preço
+
         for item in self.lista_geral_produtos:
-            listTest = [item.descricao, item.mercado, item.unit_value]
-            self.frame_inferior.adiciona_dado(listTest)
+            tupla_info = (item.descricao, item.mercado, item.unit_value)
+
+            # Verifica se a tupla já existe no conjunto de dados adicionados
+            if tupla_info not in dados_adicionados:
+                listTest = [item.descricao, item.mercado, item.unit_value]
+                self.frame_inferior.adiciona_dado(listTest)
+
+                # Adiciona a tupla ao conjunto para evitar duplicatas
+                dados_adicionados.add(tupla_info)
+
 
     def filtro_marcadores(self, item_produtos) -> None:
         """Método que filtra os marcadores"""
-        for produto in self.lista_geral_produtos:
-            if produto.descricao == item_produtos:
-                for mercado in self.lista_geral_mercados:
-                    if produto.mercado == mercado.nome:
-                        self.criar_marcador(mercado.localizacao(), mercado.nome)  
+        produtos_por_descricao = {produto.descricao: produto for produto in self.lista_geral_produtos}
+        produtos_relevantes = [produtos_por_descricao[item_produtos]]
+        marcadores_adicionados = set()
+        for produto in produtos_relevantes:
+            for mercado in self.lista_geral_mercados:
+                if produto.mercado == mercado.nome and mercado.nome not in marcadores_adicionados:
+                    self.criar_marcador(mercado.localizacao(), mercado.nome)
+                    marcadores_adicionados.add(mercado.nome)
 
     def filtrar_items(self) -> None:
         """Método que gere as ações do filtro"""
@@ -62,7 +86,6 @@ class Controller(Model, View):
             if item_lojas == "Selecione uma loja":
                 self.mapview.delete_all_marker()
                 self.filtro_marcadores(item_produtos)
-                self.filtro_combobox(item_produtos) 
 
         elif item_lojas != "Selecione uma loja":
             self.mapview.delete_all_marker()
