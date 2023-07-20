@@ -50,17 +50,12 @@ class Controller(Model, View):
     
     def inicializa_tabela(self) -> None:
         """Inicia o widget tabela"""
-        dados_adicionados = set()  # Conjunto para armazenar informações únicas de produto, mercado e preço
-
+        dados_adicionados = set()
         for item in self.lista_geral_produtos:
             tupla_info = (item.descricao, item.mercado, item.unit_value)
-
-            # Verifica se a tupla já existe no conjunto de dados adicionados
             if tupla_info not in dados_adicionados:
                 listTest = [item.descricao, item.mercado, item.unit_value]
                 self.frame_inferior.adiciona_dado(listTest)
-
-                # Adiciona a tupla ao conjunto para evitar duplicatas
                 dados_adicionados.add(tupla_info)
 
 
@@ -81,6 +76,21 @@ class Controller(Model, View):
         item_produtos = self.combobox_produtos.get()
         item_lojas = self.combobox_mercados.get()
 
+        # Criar novas listas de produtos e mercados filtrados
+        produtos_filtrados = set()
+        mercados_filtrados = set()
+
+        # Filtrar produtos e mercados com base na seleção do usuário
+        for produto in self.lista_geral_produtos:
+            if item_lojas == "Selecione uma loja" or produto.mercado == item_lojas:
+                produtos_filtrados.add(produto.descricao)
+            if item_produtos == "Selecione um produto" or produto.descricao == item_produtos:
+                mercados_filtrados.add(produto.mercado)
+
+        # Atualizar as comboboxes com os itens filtrados
+        self.combobox_produtos['values'] = ["Selecione um produto"] + list(produtos_filtrados)
+        self.combobox_mercados['values'] = ["Selecione uma loja"] + list(mercados_filtrados)
+
         if item_produtos != "Selecione um produto":
             self.inicializa_tabela()
             self.frame_inferior.remover_linhas(item_produtos, "Produto")
@@ -99,6 +109,8 @@ class Controller(Model, View):
         if item_produtos == "Selecione um produto" and item_lojas == "Selecione uma loja":
             self.inicializa_marcadores()
             self.inicializa_tabela()
+
+
 
 
 
